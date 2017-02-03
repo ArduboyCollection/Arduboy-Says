@@ -16,10 +16,7 @@ int totalMoves = 2;		// total moves per round.
 int currSeq[22];		// array to hold the 22 (2 for start + 20) movements.
 int lives = 3;			// total lives for the player
 int score = 0;			// Game score. 1 Point per correct guess.
-int upBuff = 0;			// button bounce for up, down, left, right buttons.
-int downBuff = 0;
-int leftBuff = 0;
-int rightBuff = 0;
+int hurryUp = 0;		// hurry player up !
 bool roundLost;			// set a flag to determine if the round is lost due to a wrong move.
 
 
@@ -96,7 +93,7 @@ PROGMEM const unsigned char happy_Face[]{
 void setup() {
 	ab.begin();				//initialise the system
 	txtinit();				//load txt / start screen.
-	randomSeed(7/8);		//random seed...?
+	ab.setFrameRate(60);
 }
 
 void txtinit() {
@@ -110,15 +107,18 @@ void txtinit() {
 	ab.print("\n");
 	ab.println("Shall We Play A Game?");
 	ab.println("Press A & B to Begin");
-	ab.print("(c) Rodney Norton 2017");
+	ab.print("c Rodney Norton 2017");
 	ab.display();
 }
 
 
 // the loop function runs over and over again until power down or reset
 void loop() {
-	//if (!(ab.nextFrame())) return;	//if not the next frame, skip everything
 
+	//if (!(ab.nextFrame())) 	return;
+		
+	ab.pollButtons();
+	
 	if (ab.pressed(A_BUTTON + B_BUTTON)) {
 
 		//set & reset variables
@@ -127,6 +127,7 @@ void loop() {
 		score = 0;
 		lives = 3;
 		currSeq[22];
+		hurryUp = 0;
 
 
 		ab.clear();				// clear display
@@ -136,9 +137,14 @@ void loop() {
 		ab.display();			// show display
 		delay(1000);
 		ab.clear();
+		ab.initRandomSeed();	// Generate the random seed
 		ab.display();
 		playGame();				// run game routine
 	}
+
+	//if (ab.justReleased(UP_BUTTON)) {
+	//	konamiCode();
+	//}
 }
 
 
@@ -270,11 +276,21 @@ void btnInput() {
 
 	// currRound + 1 for each input (round 1 has 2 inputs, round 2 has 3 inputs, etc).
 	do {
-		ab.clear();
+		// this needs to be set to ensure the button presses / releases are seen by the Arduboy.
+		ab.pollButtons();
 
+		// emergency reset in the middle of a game.
+		if (ab.pressed(A_BUTTON + B_BUTTON)) {
+			ab.clear();
+			ab.setCursor(0, 0);
+			ab.print("Resetting");
+			ab.display();
+			delay(1000);
+			setup();
+		}
 
-		if (ab.pressed(UP_BUTTON) == true and upBuff == 0) {
-			upBuff = 1;
+		if (ab.justReleased(UP_BUTTON)){
+			hurryUp = 0;	//Reset the hurry up if a button is pressed.
 			ab.drawBitmap(15, 0, up_Arrow, 32, 32, WHITE);
 			dispLives();
 			delay(500);
@@ -294,8 +310,8 @@ void btnInput() {
 			dispLives();
 		}
 
-		if (ab.pressed(DOWN_BUTTON) == true and downBuff == 0) {
-			downBuff = 1;
+		if (ab.justReleased(DOWN_BUTTON)){
+			hurryUp = 0;
 			ab.drawBitmap(15, 32, down_Arrow, 32, 32, WHITE);
 			dispLives();
 			delay(500);
@@ -315,8 +331,8 @@ void btnInput() {
 			dispLives();
 		}
 
-		if (ab.pressed(LEFT_BUTTON) == true and leftBuff == 0) {
-			leftBuff = 1;
+		if (ab.justReleased(LEFT_BUTTON)){
+			hurryUp = 0;
 			ab.drawBitmap(0, 15, left_Arrow, 32, 32, WHITE);
 			dispLives();
 			delay(500);
@@ -336,8 +352,8 @@ void btnInput() {
 			dispLives();
 		}
 
-		if (ab.pressed(RIGHT_BUTTON) == true and rightBuff == 0) {
-			rightBuff = 1;
+		if (ab.justReleased(RIGHT_BUTTON)){
+			hurryUp = 0;
 			ab.drawBitmap(39, 15, right_Arrow, 32, 32, WHITE);
 			dispLives();
 			delay(500);
@@ -357,22 +373,10 @@ void btnInput() {
 			dispLives();
 		}
 
-
-		// debounce buttons
-		if (ab.notPressed(UP_BUTTON)) {
-			upBuff = 0;
-		}
-		if (ab.notPressed(DOWN_BUTTON)) {
-			downBuff = 0;
-		}
-		if (ab.notPressed(LEFT_BUTTON)) {
-			leftBuff = 0;
-		}
-		if (ab.notPressed(RIGHT_BUTTON)) {
-			rightBuff = 0;
-		}
-
 	} while (i < totalMoves);
+
+
+
 
 
 	if (roundLost) {		// display the sad face, exit the sub, deduct one from the round & total moves, they're going to be added again shortly.
@@ -397,3 +401,82 @@ void btnInput() {
 
 	}
 }
+
+//void konamiCode() {
+//
+//	// Sequence needs to be Up, Up, Down, Down, Left, Right, Left, Right, B, A
+//	// We can ignore the first Up, since it has been input already.
+//	// Possibly use everyxframes to break out of the loop if the input is not quick enough.
+//
+//	//ab.setFrameRate(2);
+//	int kc[9] = { 0, 2, 2, 3, 1, 3, 1, 5, 4 };
+//
+//	ab.pollButtons();
+//
+//	//if (ab.everyXFrames(3000)) {
+////		return;
+////	}
+//
+//	for (int i = 0; i < 10; i++) {
+//		Serial.print("kc: ");
+//		Serial.print(i);
+//		Serial.print(" = ");
+//		Serial.println(kc[i]);
+//	}
+//		Serial.println("Finished");
+//
+//		delay(200);
+//
+//	if (ab.justReleased(UP_BUTTON)) {
+//		if (kc[0] == 0) {
+//			Serial.println("UP!!");
+//			delay(100);
+//			if (ab.justReleased(DOWN_BUTTON)) {
+//				if (kc[1] == 2){
+//					Serial.println("DOWN!!");
+//					delay(100);
+//					if (ab.justReleased(DOWN_BUTTON)) {
+//						if (kc[2] == 2) {
+//							Serial.println("DOWN!!!");
+//							delay(100);
+//							if (ab.justReleased(LEFT_BUTTON)) {
+//								if (kc[3] == 3) {
+//									if (ab.justReleased(RIGHT_BUTTON)) {
+//										if (kc[4] == 1) {
+//											if (ab.justReleased(LEFT_BUTTON)) {
+//												if (kc[5] == 3) {
+//													if (ab.justReleased(RIGHT_BUTTON)) {
+//														if (kc[6] == 1) {
+//															if (ab.justReleased(B_BUTTON)) {
+//																if (kc[7] == 5) {
+//																	if (ab.justReleased(A_BUTTON)) {
+//																		if (kc[8] == 4) {
+//																			ab.setFrameRate(60);
+//																			lives = 99;
+//																			ab.clear();
+//																			ab.setCursor(0, 0);
+//																			ab.setTextWrap(true);
+//																			ab.println("Konami Code Activated");
+//																			ab.println("99 Lives !");
+//																			ab.println("Press A & B to Begin");
+//																			ab.display();
+//																		}
+//																	}
+//																}
+//															}
+//														}
+//													}
+//												}
+//											}
+//										}
+//									}
+//								}
+//							}
+//						}
+//					}
+//				}
+//			}
+//		}
+//	}
+//
+//}
