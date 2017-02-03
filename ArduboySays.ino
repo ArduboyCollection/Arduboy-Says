@@ -7,7 +7,8 @@
 
 */
 
-#include <Arduboy.h>
+#include <Arduboy2.h>
+
 
 const int gameLen = 20;	// 20 rounds of the game.
 int currRound = 1;		// the current round being played - two movements to begin.
@@ -22,7 +23,7 @@ int rightBuff = 0;
 bool roundLost;			// set a flag to determine if the round is lost due to a wrong move.
 
 
-Arduboy ab;
+Arduboy2 ab;
 
 PROGMEM const unsigned char up_Arrow [] = {
 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0xc0, 0xe0, 0xf0, 0xf8, 0xfc, 0xfe, 0xff,
@@ -107,9 +108,9 @@ void txtinit() {
 	ab.println("Says");
 	ab.setTextSize(1);
 	ab.print("\n");
-	ab.println("Shall We Play A Game");
+	ab.println("Shall We Play A Game?");
 	ab.println("Press A & B to Begin");
-	ab.print("(c) Rodney Norton");
+	ab.print("(c) Rodney Norton 2017");
 	ab.display();
 }
 
