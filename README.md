@@ -13,3 +13,7 @@ Update:
 
 Fixed:
 + Random generated setup now works correctly
+
+Update 2 3rd Feb 2016
+Fixed:
++ Reset code (Up + B) has been fixed.
