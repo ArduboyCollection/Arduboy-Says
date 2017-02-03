@@ -18,7 +18,7 @@ int lives = 3;			// total lives for the player
 int score = 0;			// Game score. 1 Point per correct guess.
 int hurryUp = 0;		// hurry player up !
 bool roundLost;			// set a flag to determine if the round is lost due to a wrong move.
-
+bool gameReset;			// Has the game been reset?
 
 Arduboy2 ab;
 
@@ -115,7 +115,7 @@ void txtinit() {
 // the loop function runs over and over again until power down or reset
 void loop() {
 
-	//if (!(ab.nextFrame())) 	return;
+	if (!(ab.nextFrame())) 	return;
 		
 	ab.pollButtons();
 	
@@ -128,6 +128,7 @@ void loop() {
 		lives = 3;
 		currSeq[22];
 		hurryUp = 0;
+		gameReset = false;
 
 
 		ab.clear();				// clear display
@@ -238,7 +239,14 @@ void gameOver() {
 		ab.display();
 		delay(3000);
 	}
-	else
+	else if (gameReset = true) {
+		ab.clear();
+		ab.setCursor(0, 0);
+		ab.print("Press A + B to Reset");
+		ab.display();
+		delay(1000);
+		gameReset = false;
+	}else
 	{
 		ab.clear();
 		ab.setCursor(0, 0);
@@ -280,13 +288,15 @@ void btnInput() {
 		ab.pollButtons();
 
 		// emergency reset in the middle of a game.
-		if (ab.pressed(A_BUTTON + B_BUTTON)) {
+		if (ab.pressed(UP_BUTTON + B_BUTTON)) {
 			ab.clear();
 			ab.setCursor(0, 0);
 			ab.print("Resetting");
 			ab.display();
-			delay(1000);
-			setup();
+			delay(500);
+			gameReset = true;
+			gameOver();
+
 		}
 
 		if (ab.justReleased(UP_BUTTON)){
